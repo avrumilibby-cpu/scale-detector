@@ -2,445 +2,801 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>מזהה סולם</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>קול ומקצב · מזהה סולם</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700&family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700;900&family=Assistant:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #17130f;
-    --panel: #221c16;
-    --panel-2: #2b241c;
-    --brass: #c8933f;
-    --brass-dim: #8a663a;
-    --cream: #efe6d8;
-    --muted: #9a8e7c;
-    --line: #3a3025;
+  :root{
+    --bg:#14110e;
+    --bg-elev:#1d1811;
+    --bg-elev-2:#241d15;
+    --ink:#f2e9d8;
+    --ink-dim:#b6ab97;
+    --ink-faint:#7d7360;
+    --gold:#e0a72e;
+    --gold-dim:#a17b28;
+    --teal:#6b9088;
+    --line:#3a3226;
+    --red:#c25a4a;
+    --radius:4px;
   }
-  * { box-sizing: border-box; }
-  html, body {
-    margin: 0;
-    padding: 0;
-    background: var(--bg);
-    color: var(--cream);
-    font-family: 'Heebo', sans-serif;
-    min-height: 100%;
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Assistant', sans-serif;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    -webkit-tap-highlight-color:transparent;
   }
-  body {
-    display: flex;
-    justify-content: center;
-    padding: 32px 16px 64px;
+  ::selection{ background:var(--gold); color:#14110e; }
+
+  header.stage{
+    padding:22px 20px 14px;
+    border-bottom:1px solid var(--line);
+    background:
+      radial-gradient(120% 140% at 50% -30%, rgba(224,167,46,0.10), transparent 60%),
+      var(--bg);
   }
-  .stage {
-    width: 100%;
-    max-width: 480px;
+  header.stage h1{
+    font-family:'Frank Ruhl Libre', serif;
+    font-weight:700;
+    font-size:1.5rem;
+    letter-spacing:0.01em;
   }
-  header {
-    text-align: center;
-    margin-bottom: 28px;
-  }
-  h1 {
-    font-family: 'Frank Ruhl Libre', serif;
-    font-weight: 500;
-    font-size: 30px;
-    margin: 0 0 6px;
-    color: var(--cream);
-    letter-spacing: 0.5px;
-  }
-  .subtitle {
-    color: var(--muted);
-    font-size: 14px;
-    line-height: 1.7;
+  header.stage p{
+    color:var(--ink-dim);
+    font-size:0.88rem;
+    margin-top:4px;
+    max-width:38ch;
+    line-height:1.5;
   }
 
-  .dial-wrap {
-    position: relative;
-    width: 100%;
-    max-width: 340px;
-    margin: 8px auto 20px;
+  nav.tabs{
+    display:flex;
+    border-bottom:1px solid var(--line);
+    background:var(--bg-elev);
+    position:sticky;
+    top:0;
+    z-index:5;
   }
-  svg { width: 100%; height: auto; display: block; }
+  nav.tabs button{
+    flex:1;
+    background:none;
+    border:none;
+    color:var(--ink-faint);
+    font-family:'Assistant', sans-serif;
+    font-size:0.86rem;
+    font-weight:600;
+    padding:13px 6px;
+    cursor:pointer;
+    border-bottom:2px solid transparent;
+    transition:color .15s ease, border-color .15s ease;
+  }
+  nav.tabs button.active{
+    color:var(--gold);
+    border-bottom-color:var(--gold);
+  }
+  nav.tabs button:active{ opacity:0.7; }
 
-  .seg-label {
-    font-family: 'Frank Ruhl Libre', serif;
-    font-size: 13px;
-    fill: var(--muted);
+  main{
+    flex:1;
+    padding:22px 18px 60px;
+    max-width:520px;
+    width:100%;
+    margin:0 auto;
   }
-  .seg-label.active { fill: var(--brass); }
+  section.page{ display:none; }
+  section.page.active{ display:block; }
 
-  .center-note {
-    font-family: 'Frank Ruhl Libre', serif;
-    font-size: 42px;
-    fill: var(--cream);
+  .card{
+    background:var(--bg-elev);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:18px;
+    margin-bottom:16px;
   }
-  .center-hz {
-    font-size: 12px;
-    fill: var(--muted);
-    font-family: 'Heebo', sans-serif;
+  .card h2{
+    font-family:'Frank Ruhl Libre', serif;
+    font-size:1.05rem;
+    font-weight:500;
+    margin-bottom:10px;
+    color:var(--ink);
   }
+  .muted{ color:var(--ink-dim); font-size:0.86rem; line-height:1.55; }
 
-  .panel {
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 4px;
-    padding: 20px;
-    margin-bottom: 14px;
+  /* --- Live tab --- */
+  .listen-stage{
+    text-align:center;
+    padding:30px 10px 22px;
+    position:relative;
   }
-
-  .result-label {
-    font-size: 13px;
-    color: var(--muted);
-    margin-bottom: 6px;
+  .note-display{
+    font-family:'Frank Ruhl Libre', serif;
+    font-size:4.6rem;
+    font-weight:700;
+    line-height:1;
+    color:var(--gold);
+    min-height:5rem;
+    transition:opacity .1s ease;
   }
-  .result-value {
-    font-family: 'Frank Ruhl Libre', serif;
-    font-size: 26px;
-    color: var(--brass);
-    min-height: 34px;
+  .note-display.idle{ color:var(--ink-faint); font-size:2.2rem; font-weight:500; }
+  .note-sub{
+    margin-top:6px;
+    color:var(--ink-dim);
+    font-size:0.95rem;
+    font-variant-numeric: tabular-nums;
   }
-  .result-sub {
-    font-size: 12px;
-    color: var(--muted);
-    margin-top: 8px;
+  .tuner-track{
+    height:6px;
+    background:var(--bg-elev-2);
+    border-radius:3px;
+    margin:18px auto 0;
+    max-width:260px;
+    position:relative;
+    border:1px solid var(--line);
   }
-
-  .controls {
-    display: flex;
-    gap: 10px;
-    margin-top: 4px;
+  .tuner-mid{
+    position:absolute;
+    top:-4px; bottom:-4px;
+    right:50%;
+    width:1px;
+    background:var(--ink-faint);
   }
-  button {
-    flex: 1;
-    font-family: 'Heebo', sans-serif;
-    font-size: 15px;
-    font-weight: 500;
-    padding: 14px 10px;
-    border-radius: 4px;
-    border: 1px solid var(--line);
-    background: var(--panel-2);
-    color: var(--cream);
-    cursor: pointer;
-    transition: background 0.15s ease, border-color 0.15s ease;
-  }
-  button.primary {
-    background: var(--brass);
-    color: #221a0e;
-    border-color: var(--brass);
-  }
-  button.primary.listening {
-    background: #7a3a30;
-    border-color: #7a3a30;
-    color: var(--cream);
-  }
-  button:disabled { opacity: 0.5; cursor: not-allowed; }
-  button:not(:disabled):hover { filter: brightness(1.08); }
-
-  .status {
-    text-align: center;
-    font-size: 12px;
-    color: var(--muted);
-    margin-top: 12px;
-    min-height: 16px;
-  }
-
-  .banner {
-    display: none;
-    background: #3a2420;
-    border: 1px solid #7a3a30;
-    color: #f0d9d2;
-    font-size: 13px;
-    line-height: 1.7;
-    border-radius: 4px;
-    padding: 14px 16px;
-    margin-bottom: 14px;
-  }
-  .banner.show { display: block; }
-  .banner code {
-    background: #2b1a17;
-    padding: 1px 5px;
-    border-radius: 3px;
-    font-size: 12px;
+  .tuner-dot{
+    position:absolute;
+    top:50%;
+    width:12px; height:12px;
+    background:var(--gold);
+    border-radius:50%;
+    transform:translate(50%,-50%);
+    right:50%;
+    transition:right .08s linear;
+    box-shadow:0 0 8px rgba(224,167,46,0.5);
   }
 
-  .note-bar-track {
-    position: relative;
-    height: 8px;
-    background: var(--line);
-    border-radius: 4px;
-    margin-top: 12px;
-    overflow: hidden;
+  .rec-btn{
+    display:block;
+    width:100%;
+    margin-top:24px;
+    padding:15px;
+    border-radius:var(--radius);
+    border:1px solid var(--gold-dim);
+    background:var(--gold);
+    color:#14110e;
+    font-family:'Assistant', sans-serif;
+    font-weight:700;
+    font-size:1rem;
+    cursor:pointer;
   }
-  .note-bar-fill {
-    position: absolute;
-    inset: 0;
-    width: 0%;
-    background: var(--brass);
-    border-radius: 4px;
-    transition: width 0.15s linear;
+  .rec-btn.recording{
+    background:var(--red);
+    border-color:#7a3226;
+    color:#fff5f0;
+  }
+  .rec-btn:active{ opacity:0.85; }
+
+  .hist-row{
+    display:flex;
+    align-items:flex-end;
+    gap:5px;
+    height:90px;
+    margin-top:14px;
+  }
+  .hist-bar{
+    flex:1;
+    background:var(--gold-dim);
+    border-radius:2px 2px 0 0;
+    min-height:2px;
+    position:relative;
+  }
+  .hist-labels{
+    display:flex;
+    gap:5px;
+    margin-top:6px;
+  }
+  .hist-labels span{
+    flex:1;
+    text-align:center;
+    font-size:0.68rem;
+    color:var(--ink-faint);
+  }
+
+  .result-banner{
+    margin-top:16px;
+    padding:14px;
+    border:1px solid var(--gold-dim);
+    border-radius:var(--radius);
+    background:rgba(224,167,46,0.08);
+    display:none;
+  }
+  .result-banner.show{ display:block; }
+  .result-banner .scale-name{
+    font-family:'Frank Ruhl Libre', serif;
+    font-size:1.3rem;
+    color:var(--gold);
+  }
+
+  /* --- Profile tab --- */
+  .range-display{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:14px;
+    padding:14px 0 6px;
+  }
+  .range-note{
+    font-family:'Frank Ruhl Libre', serif;
+    font-size:2.1rem;
+    color:var(--gold);
+  }
+  .range-arrow{ color:var(--ink-faint); font-size:1.3rem; }
+  .empty-state{
+    text-align:center;
+    padding:26px 10px;
+    color:var(--ink-faint);
+    font-size:0.9rem;
+    line-height:1.6;
+  }
+  .session-item{
+    display:flex;
+    justify-content:space-between;
+    padding:9px 0;
+    border-bottom:1px solid var(--line);
+    font-size:0.85rem;
+  }
+  .session-item:last-child{ border-bottom:none; }
+  .session-item .s-date{ color:var(--ink-dim); }
+  .session-item .s-scale{ color:var(--gold); }
+  .del-link{
+    color:var(--ink-faint);
+    font-size:0.78rem;
+    text-decoration:underline;
+    cursor:pointer;
+    background:none; border:none;
+    margin-top:10px;
+  }
+
+  /* --- Song tab --- */
+  .shift-box{
+    text-align:center;
+    padding:10px 0;
+  }
+  .shift-num{
+    font-family:'Frank Ruhl Libre', serif;
+    font-size:2.6rem;
+    color:var(--gold);
+  }
+  .shift-label{ color:var(--ink-dim); font-size:0.85rem; margin-top:2px; }
+
+  footer{
+    text-align:center;
+    color:var(--ink-faint);
+    font-size:0.75rem;
+    padding:16px;
   }
 </style>
 </head>
 <body>
-<div class="stage">
-  <header>
-    <h1>מזהה סולם</h1>
-    <div class="subtitle">שירו לתוך המיקרופון — האפליקציה תאזין לצלילים ותנחש את הסולם המוזיקלי</div>
-  </header>
 
-  <div class="banner" id="banner"></div>
+<header class="stage">
+  <h1>קול ומקצב</h1>
+  <p>מזהה באיזה סולם אתה שר, בונה לך פרופיל קולי לאורך זמן, ומציע את הסולם הנכון לכל שיר.</p>
+</header>
 
-  <div class="dial-wrap">
-    <svg viewBox="0 0 340 340" id="dial"></svg>
-  </div>
+<nav class="tabs">
+  <button data-page="live" class="active">זיהוי סולם חי</button>
+  <button data-page="profile">הפרופיל הקולי שלי</button>
+  <button data-page="song">התאמת שירים</button>
+</nav>
 
-  <div class="panel">
-    <div class="result-label">הסולם הסביר ביותר</div>
-    <div class="result-value" id="resultValue">—</div>
-    <div class="result-sub" id="resultSub">התחילו להאזין כדי לצבור מספיק תווים</div>
-  </div>
+<main>
 
-  <div class="controls">
-    <button class="primary" id="toggleBtn">התחל האזנה</button>
-    <button id="resetBtn">איפוס</button>
-  </div>
+  <!-- LIVE TAB -->
+  <section id="page-live" class="page active">
+    <div class="card listen-stage">
+      <div id="noteDisplay" class="note-display idle">מוכן להאזין</div>
+      <div id="noteSub" class="note-sub">&nbsp;</div>
+      <div class="tuner-track">
+        <div class="tuner-mid"></div>
+        <div id="tunerDot" class="tuner-dot" style="right:50%"></div>
+      </div>
+      <button id="liveBtn" class="rec-btn">התחל להקליט</button>
 
-  <div class="note-bar-track"><div class="note-bar-fill" id="volBar"></div></div>
-  <div class="status" id="status"></div>
-</div>
+      <div class="hist-row" id="histRow"></div>
+      <div class="hist-labels" id="histLabels"></div>
+
+      <div id="resultBanner" class="result-banner">
+        <div class="muted">זיהיתי שאתה שר בסולם:</div>
+        <div class="scale-name" id="scaleName">—</div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>איך זה עובד</h2>
+      <p class="muted">שיר או המהם קטע (רצוי 10 שניות ומעלה). האפליקציה אוספת את התווים ששרת, ובסוף ההקלטה בונה מהם היסטוגרמה ומזהה את הסולם הכי מתאים. שום קובץ קול לא נשמר — רק התדרים המספריים, כדי לחסוך מקום.</p>
+    </div>
+  </section>
+
+  <!-- PROFILE TAB -->
+  <section id="page-profile" class="page">
+    <div class="card">
+      <h2>הטווח הנוח שלך (טסיטורה)</h2>
+      <div id="rangeArea">
+        <div class="empty-state">עדיין אין מספיק נתונים. הקלט כמה סשנים בלשונית "זיהוי סולם חי" כדי לבנות פרופיל.</div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>פיזור תווים מצטבר</h2>
+      <div class="hist-row" id="profileHistRow"></div>
+      <div class="hist-labels" id="profileHistLabels"></div>
+    </div>
+    <div class="card">
+      <h2>היסטוריית הקלטות</h2>
+      <div id="sessionsList"></div>
+      <button class="del-link" id="clearProfileBtn">מחק את כל הנתונים השמורים</button>
+    </div>
+  </section>
+
+  <!-- SONG TAB -->
+  <section id="page-song" class="page">
+    <div class="card listen-stage">
+      <div id="songNoteDisplay" class="note-display idle">מוכן להאזין</div>
+      <div id="songNoteSub" class="note-sub">&nbsp;</div>
+      <button id="songBtn" class="rec-btn">הקלט קטע מהשיר</button>
+    </div>
+    <div class="card" id="songResultCard" style="display:none;">
+      <h2>המלצה לשיר הזה</h2>
+      <p class="muted" id="songDetected">—</p>
+      <div class="shift-box">
+        <div class="shift-num" id="shiftNum">—</div>
+        <div class="shift-label" id="shiftLabel">הזזה מומלצת</div>
+      </div>
+      <p class="muted" id="songRecommend" style="text-align:center; margin-top:8px;">—</p>
+    </div>
+    <div class="card">
+      <h2>איך זה עובד</h2>
+      <p class="muted">שיר או השמע קטע קצר מהשיר שאתה רוצה לבצע. המערכת תזהה את המנעד והסולם המקורי של הקטע, תשווה אותו לפרופיל הקולי שנבנה עבורך, ותציע הזזה (טרנספוזיציה) שתשים את השיר בדיוק באזור הנוח לך. ככל שהפרופיל שלך עשיר יותר, ההמלצה תהיה מדויקת יותר.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>הניתוח כולו מתבצע בדפדפן שלך בלבד. שום שמע לא נשלח לשום שרת.</footer>
 
 <script>
-const NOTE_NAMES = ['דו','דו♯','רה','רה♯','מי','פה','פה♯','סול','סול♯','לה','לה♯','סי'];
+(function(){
 
-// Krumhansl-Kessler key profiles
-const MAJOR_PROFILE = [6.35,2.23,3.48,2.33,4.38,4.09,2.52,5.19,2.39,3.66,2.29,2.88];
-const MINOR_PROFILE = [6.33,2.68,3.52,5.38,2.60,3.53,2.54,4.75,3.98,2.69,3.34,3.17];
+const NOTE_NAMES = ['דו','דו#','רה','רה#','מי','פה','פה#','סול','סול#','לה','לה#','סי'];
+const MAJOR_INTERVALS = [0,2,4,5,7,9,11];
+const MINOR_INTERVALS = [0,2,3,5,7,8,10];
 
-let audioCtx, analyser, source, stream, dataArray, rafId;
-let listening = false;
-let histogram = new Array(12).fill(0);
-let sampleCount = 0;
-const DECAY = 0.985; // older notes fade out so the guess tracks what you're singing right now
-
-const banner = document.getElementById('banner');
-
-function showBanner(html) {
-  banner.innerHTML = html;
-  banner.classList.add('show');
+/* ---------- storage helpers (with in-memory fallback) ---------- */
+const memoryStore = {};
+async function storeSet(key, value){
+  try{
+    if(window.storage){ return await window.storage.set(key, value, false); }
+  }catch(e){}
+  memoryStore[key] = value;
+  return {key, value};
+}
+async function storeGet(key){
+  try{
+    if(window.storage){ return await window.storage.get(key, false); }
+  }catch(e){}
+  if(key in memoryStore) return {key, value:memoryStore[key]};
+  return null;
+}
+async function storeList(prefix){
+  try{
+    if(window.storage){ const r = await window.storage.list(prefix, false); return r ? r.keys : []; }
+  }catch(e){}
+  return Object.keys(memoryStore).filter(k=>k.startsWith(prefix));
+}
+async function storeDelete(key){
+  try{
+    if(window.storage){ return await window.storage.delete(key, false); }
+  }catch(e){}
+  delete memoryStore[key];
 }
 
-function checkEnvironment() {
-  const hasMediaDevices = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
-  if (!hasMediaDevices || !window.isSecureContext) {
-    showBanner(
-      'הדפדפן חוסם גישה למיקרופון בעמוד הזה — כנראה כי הקובץ נפתח ישירות מהדיסק (<code>file://</code>) ולא מכתובת מאובטחת.<br>' +
-      'העלו את הקובץ ל-GitHub Pages (או כל אחסון עם HTTPS) ופתחו אותו משם, ואז הגישה תעבוד.'
-    );
-    toggleBtn.disabled = true;
-    return false;
-  }
-  return true;
+/* ---------- pitch math ---------- */
+function freqToMidi(freq){ return 69 + 12*Math.log2(freq/440); }
+function midiToInfo(midi){
+  const rounded = Math.round(midi);
+  const idx = ((rounded%12)+12)%12;
+  const octave = Math.floor(rounded/12)-1;
+  const cents = Math.round((midi-rounded)*100);
+  return { name:NOTE_NAMES[idx], octave, idx, midi:rounded, cents };
 }
 
-const dial = document.getElementById('dial');
-const toggleBtn = document.getElementById('toggleBtn');
-const resetBtn = document.getElementById('resetBtn');
-const resultValue = document.getElementById('resultValue');
-const resultSub = document.getElementById('resultSub');
-const statusEl = document.getElementById('status');
-const volBar = document.getElementById('volBar');
-
-checkEnvironment();
-
-const CX = 170, CY = 170, R_OUT = 150, R_IN = 60, R_LABEL = 128;
-
-function buildDial() {
-  let svg = '';
-  for (let i = 0; i < 12; i++) {
-    const angle = (i / 12) * 2 * Math.PI - Math.PI / 2;
-    const nextAngle = ((i + 1) / 12) * 2 * Math.PI - Math.PI / 2;
-    const x1 = CX + R_IN * Math.cos(angle), y1 = CY + R_IN * Math.sin(angle);
-    const x2 = CX + R_OUT * Math.cos(angle), y2 = CY + R_OUT * Math.sin(angle);
-    const x3 = CX + R_OUT * Math.cos(nextAngle), y3 = CY + R_OUT * Math.sin(nextAngle);
-    const x4 = CX + R_IN * Math.cos(nextAngle), y4 = CY + R_IN * Math.sin(nextAngle);
-    svg += `<path id="seg${i}" d="M ${x1} ${y1} L ${x2} ${y2} A ${R_OUT} ${R_OUT} 0 0 1 ${x3} ${y3} L ${x4} ${y4} A ${R_IN} ${R_IN} 0 0 0 ${x1} ${y1} Z" fill="#2b241c" stroke="#17130f" stroke-width="2"/>`;
-    const midAngle = angle + (Math.PI / 12);
-    const lx = CX + R_LABEL * Math.cos(midAngle), ly = CY + R_LABEL * Math.sin(midAngle);
-    svg += `<text id="label${i}" class="seg-label" x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle">${NOTE_NAMES[i]}</text>`;
-  }
-  svg += `<circle cx="${CX}" cy="${CY}" r="${R_IN - 4}" fill="#17130f" stroke="#3a3025" stroke-width="1"/>`;
-  svg += `<text id="centerNote" class="center-note" x="${CX}" y="${CY - 4}" text-anchor="middle" dominant-baseline="middle">—</text>`;
-  svg += `<text id="centerHz" class="center-hz" x="${CX}" y="${CY + 20}" text-anchor="middle">—</text>`;
-  dial.innerHTML = svg;
-}
-buildDial();
-
-function updateDialWeights() {
-  const max = Math.max(...histogram, 1);
-  for (let i = 0; i < 12; i++) {
-    const seg = document.getElementById('seg' + i);
-    const label = document.getElementById('label' + i);
-    const intensity = histogram[i] / max;
-    const c = Math.round(43 + intensity * (200 - 43));
-    const g = Math.round(36 + intensity * (147 - 36));
-    const b = Math.round(28 + intensity * (63 - 28));
-    seg.setAttribute('fill', `rgb(${c},${g},${b})`);
-    label.classList.toggle('active', intensity > 0.5);
-  }
-}
-
-function autocorrelate(buf, sampleRate) {
+// ACF2+ autocorrelation pitch detector
+function autoCorrelate(buf, sampleRate){
   const SIZE = buf.length;
   let rms = 0;
-  for (let i = 0; i < SIZE; i++) rms += buf[i] * buf[i];
-  rms = Math.sqrt(rms / SIZE);
-  if (rms < 0.01) return { freq: -1, rms };
+  for(let i=0;i<SIZE;i++){ rms += buf[i]*buf[i]; }
+  rms = Math.sqrt(rms/SIZE);
+  if(rms < 0.012) return -1;
 
-  let r1 = 0, r2 = SIZE - 1;
-  const thresh = 0.2;
-  for (let i = 0; i < SIZE / 2; i++) { if (Math.abs(buf[i]) < thresh) { r1 = i; break; } }
-  for (let i = 1; i < SIZE / 2; i++) { if (Math.abs(buf[SIZE - i]) < thresh) { r2 = SIZE - i; break; } }
+  let r1=0, r2=SIZE-1;
+  const thres = 0.2;
+  for(let i=0;i<SIZE/2;i++){ if(Math.abs(buf[i])<thres){ r1=i; break; } }
+  for(let i=1;i<SIZE/2;i++){ if(Math.abs(buf[SIZE-i])<thres){ r2=SIZE-i; break; } }
   const trimmed = buf.slice(r1, r2);
-  const n = trimmed.length;
+  const newSize = trimmed.length;
+  if(newSize < 8) return -1;
 
-  const c = new Array(n).fill(0);
-  for (let lag = 0; lag < n; lag++) {
-    for (let i = 0; i < n - lag; i++) c[lag] += trimmed[i] * trimmed[i + lag];
+  const c = new Array(newSize).fill(0);
+  for(let i=0;i<newSize;i++){
+    for(let j=0;j<newSize-i;j++){
+      c[i] += trimmed[j]*trimmed[j+i];
+    }
   }
-  let d = 0;
-  while (d < n - 1 && c[d] > c[d + 1]) d++;
-  let maxVal = -1, maxPos = -1;
-  for (let i = d; i < n; i++) { if (c[i] > maxVal) { maxVal = c[i]; maxPos = i; } }
-  let T0 = maxPos;
-  if (T0 <= 0) return { freq: -1, rms };
-
-  const x1 = c[T0 - 1] || c[T0], x2 = c[T0], x3 = c[T0 + 1] || c[T0];
-  const a = (x1 + x3 - 2 * x2) / 2, b = (x3 - x1) / 2;
-  if (a) T0 = T0 - b / (2 * a);
-
-  return { freq: sampleRate / T0, rms };
-}
-
-function freqToNote(freq) {
-  const midi = 69 + 12 * Math.log2(freq / 440);
-  const rounded = Math.round(midi);
-  const pitchClass = ((rounded % 12) + 12) % 12;
-  const cents = (midi - rounded) * 100;
-  return { pitchClass, midi: rounded, cents };
-}
-
-function pearson(hist, profile) {
-  const n = 12;
-  const meanH = hist.reduce((a, b) => a + b, 0) / n;
-  const meanP = profile.reduce((a, b) => a + b, 0) / n;
-  let num = 0, denH = 0, denP = 0;
-  for (let i = 0; i < n; i++) {
-    const dh = hist[i] - meanH, dp = profile[i] - meanP;
-    num += dh * dp; denH += dh * dh; denP += dp * dp;
+  let d=0; while(d < newSize-1 && c[d] > c[d+1]) d++;
+  let maxval=-1, maxpos=-1;
+  for(let i=d;i<newSize;i++){
+    if(c[i] > maxval){ maxval=c[i]; maxpos=i; }
   }
-  const den = Math.sqrt(denH * denP);
-  return den === 0 ? 0 : num / den;
+  if(maxpos<=0 || maxpos>=newSize-1) return -1;
+  let T0 = maxpos;
+  const x1=c[T0-1], x2=c[T0], x3=c[T0+1];
+  const a=(x1+x3-2*x2)/2, b=(x3-x1)/2;
+  if(a) T0 = T0 - b/(2*a);
+  if(T0<=0) return -1;
+  const freq = sampleRate/T0;
+  if(freq < 60 || freq > 1200) return -1;
+  return freq;
 }
 
-function bestKey(hist) {
-  let best = { score: -Infinity, tonic: 0, mode: 'major' };
-  for (let tonic = 0; tonic < 12; tonic++) {
-    const rotatedMajor = MAJOR_PROFILE.map((_, i) => hist[(i + tonic) % 12]);
-    const rotatedMinor = MINOR_PROFILE.map((_, i) => hist[(i + tonic) % 12]);
-    const scoreMajor = pearson(rotatedMajor, MAJOR_PROFILE);
-    const scoreMinor = pearson(rotatedMinor, MINOR_PROFILE);
-    if (scoreMajor > best.score) best = { score: scoreMajor, tonic, mode: 'major' };
-    if (scoreMinor > best.score) best = { score: scoreMinor, tonic, mode: 'minor' };
+function detectScale(classHistogram){
+  let best = null;
+  for(let tonic=0; tonic<12; tonic++){
+    [['מז\'ור', MAJOR_INTERVALS], ['מינור', MINOR_INTERVALS]].forEach(([modeName, intervals])=>{
+      let score = 0;
+      for(let i=0;i<12;i++){
+        const degree = ((i-tonic)+12)%12;
+        const inScale = intervals.includes(degree);
+        const count = classHistogram[i] || 0;
+        if(inScale){
+          const weight = degree===0 ? 2.6 : (degree===7 ? 1.6 : (degree===4||degree===3 ? 1.3 : 1));
+          score += count * weight;
+        } else {
+          score -= count * 0.7;
+        }
+      }
+      if(!best || score > best.score){ best = { tonic, modeName, score }; }
+    });
   }
   return best;
 }
 
-function renderResult() {
-  const totalWeight = histogram.reduce((a, b) => a + b, 0);
-  if (sampleCount < 2 || totalWeight === 0) {
-    resultValue.textContent = '—';
-    resultSub.textContent = 'שירו תו אחד כדי לקבל ניחוש ראשוני';
-    return;
+/* ---------- shared histogram bar renderer ---------- */
+function renderHistogram(rowEl, labelsEl, classHistogram){
+  const max = Math.max(1, ...classHistogram);
+  rowEl.innerHTML = '';
+  labelsEl.innerHTML = '';
+  for(let i=0;i<12;i++){
+    const bar = document.createElement('div');
+    bar.className = 'hist-bar';
+    const h = Math.round((classHistogram[i]/max) * 86) + 2;
+    bar.style.height = h + 'px';
+    if(i%2===1) bar.style.opacity = '0.85';
+    rowEl.appendChild(bar);
+
+    const lab = document.createElement('span');
+    lab.textContent = NOTE_NAMES[i].replace('#','♯');
+    labelsEl.appendChild(lab);
   }
-  const { tonic, mode, score } = bestKey(histogram);
-  const modeLabel = mode === 'major' ? "מז'ור" : 'מינור';
-  resultValue.textContent = `${NOTE_NAMES[tonic]} ${modeLabel}`;
-  const confidence = Math.max(0, Math.min(1, (score + 1) / 2));
-  const label = sampleCount < 8 ? 'ניחוש ראשוני' : 'ביטחון בזיהוי';
-  resultSub.textContent = `${label}: ${Math.round(confidence * 100)}%`;
 }
 
-function tick() {
-  if (!listening) return;
-  const buf = new Float32Array(analyser.fftSize);
-  analyser.getFloatTimeDomainData(buf);
-  const { freq, rms } = autocorrelate(buf, audioCtx.sampleRate);
+/* ================= TAB SWITCHING ================= */
+const tabButtons = document.querySelectorAll('nav.tabs button');
+const pages = document.querySelectorAll('section.page');
+tabButtons.forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    tabButtons.forEach(b=>b.classList.remove('active'));
+    pages.forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('page-'+btn.dataset.page).classList.add('active');
+    if(btn.dataset.page === 'profile') refreshProfile();
+  });
+});
 
-  volBar.style.width = Math.min(100, rms * 400) + '%';
+/* ================= LIVE TAB ================= */
+let audioCtx, analyser, mediaStream, rafId;
+let liveClassHist = new Array(12).fill(0);
+let liveMidiCounts = {};
+let liveRecording = false;
 
-  const centerNote = document.getElementById('centerNote');
-  const centerHz = document.getElementById('centerHz');
+const noteDisplay = document.getElementById('noteDisplay');
+const noteSub = document.getElementById('noteSub');
+const tunerDot = document.getElementById('tunerDot');
+const liveBtn = document.getElementById('liveBtn');
+const histRow = document.getElementById('histRow');
+const histLabels = document.getElementById('histLabels');
+const resultBanner = document.getElementById('resultBanner');
+const scaleNameEl = document.getElementById('scaleName');
 
-  if (freq > 60 && freq < 1200) {
-    const { pitchClass, cents } = freqToNote(freq);
-    for (let i = 0; i < 12; i++) histogram[i] *= DECAY;
-    histogram[pitchClass] += 1;
-    sampleCount++;
-    centerNote.textContent = NOTE_NAMES[pitchClass];
-    centerHz.textContent = `${freq.toFixed(1)} הרץ · ${cents > 0 ? '+' : ''}${cents.toFixed(0)} סנט`;
-    updateDialWeights();
-    renderResult();
-    statusEl.textContent = '';
-  } else {
-    centerHz.textContent = '';
-  }
+renderHistogram(histRow, histLabels, liveClassHist);
 
-  rafId = requestAnimationFrame(tick);
-}
-
-async function startListening() {
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
-  } catch (err) {
-    showBanner(`לא הצלחתי לגשת למיקרופון: <code>${err.name || err.message || err}</code>.<br>ודאו שנתתם הרשאת מיקרופון לדף הזה בהגדרות הדפדפן, ושהעמוד נפתח מכתובת https.`);
-    return;
-  }
-  banner.classList.remove('show');
+async function startListening(onPitch){
   audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  mediaStream = await navigator.mediaDevices.getUserMedia({ audio:{ echoCancellation:false, noiseSuppression:false, autoGainControl:false } });
+  const source = audioCtx.createMediaStreamSource(mediaStream);
   analyser = audioCtx.createAnalyser();
   analyser.fftSize = 2048;
-  source = audioCtx.createMediaStreamSource(stream);
   source.connect(analyser);
+  const buf = new Float32Array(analyser.fftSize);
 
-  listening = true;
-  toggleBtn.textContent = 'עצור האזנה';
-  toggleBtn.classList.add('listening');
-  statusEl.textContent = 'מאזין...';
-  tick();
+  function loop(){
+    analyser.getFloatTimeDomainData(buf);
+    const freq = autoCorrelate(buf, audioCtx.sampleRate);
+    onPitch(freq);
+    rafId = requestAnimationFrame(loop);
+  }
+  loop();
 }
 
-function stopListening() {
-  listening = false;
-  if (rafId) cancelAnimationFrame(rafId);
-  if (stream) stream.getTracks().forEach(t => t.stop());
-  if (audioCtx) audioCtx.close();
-  toggleBtn.textContent = 'התחל האזנה';
-  toggleBtn.classList.remove('listening');
-  statusEl.textContent = '';
-  volBar.style.width = '0%';
-  document.getElementById('centerHz').textContent = '';
+function stopListening(){
+  if(rafId) cancelAnimationFrame(rafId);
+  if(mediaStream) mediaStream.getTracks().forEach(t=>t.stop());
+  if(audioCtx) audioCtx.close();
+  rafId = null; mediaStream = null; audioCtx = null;
 }
 
-toggleBtn.addEventListener('click', () => {
-  if (listening) stopListening(); else startListening();
+liveBtn.addEventListener('click', async ()=>{
+  if(!liveRecording){
+    liveClassHist = new Array(12).fill(0);
+    liveMidiCounts = {};
+    resultBanner.classList.remove('show');
+    try{
+      await startListening(handleLivePitch);
+      liveRecording = true;
+      liveBtn.textContent = 'עצור וזהה סולם';
+      liveBtn.classList.add('recording');
+    }catch(err){
+      noteDisplay.textContent = 'אין גישה למיקרופון';
+      noteDisplay.classList.add('idle');
+    }
+  } else {
+    stopListening();
+    liveRecording = false;
+    liveBtn.textContent = 'התחל להקליט';
+    liveBtn.classList.remove('recording');
+    noteDisplay.textContent = 'מוכן להאזין';
+    noteDisplay.classList.add('idle');
+    noteSub.innerHTML = '&nbsp;';
+    finishLiveSession();
+  }
 });
 
-resetBtn.addEventListener('click', () => {
-  histogram = new Array(12).fill(0);
-  sampleCount = 0;
-  updateDialWeights();
-  renderResult();
-  document.getElementById('centerNote').textContent = '—';
+function handleLivePitch(freq){
+  if(freq === -1){
+    noteDisplay.classList.add('idle');
+    return;
+  }
+  const midi = freqToMidi(freq);
+  const info = midiToInfo(midi);
+  noteDisplay.classList.remove('idle');
+  noteDisplay.textContent = info.name + subscriptOctave(info.octave);
+  noteSub.textContent = Math.round(freq) + ' Hz · ' + (info.cents>=0?'+':'') + info.cents + ' cents';
+
+  const pct = 50 + (info.cents/50)*50;
+  tunerDot.style.right = (100-Math.max(0,Math.min(100,pct))) + '%';
+
+  liveClassHist[info.idx] += 1;
+  liveMidiCounts[info.midi] = (liveMidiCounts[info.midi]||0) + 1;
+  renderHistogram(histRow, histLabels, liveClassHist);
+}
+
+function subscriptOctave(oct){
+  const digits = '₀₁₂₃₄₅₆₇₈₉';
+  return String(oct).split('').map(d=> d==='-' ? '₋' : digits[+d]).join('');
+}
+
+async function finishLiveSession(){
+  const total = liveClassHist.reduce((a,b)=>a+b,0);
+  if(total < 8){
+    return; // too little data to say anything meaningful
+  }
+  const best = detectScale(liveClassHist);
+  scaleNameEl.textContent = NOTE_NAMES[best.tonic] + ' ' + best.modeName;
+  resultBanner.classList.add('show');
+
+  const record = {
+    ts: Date.now(),
+    classHistogram: liveClassHist,
+    midiCounts: liveMidiCounts,
+    tonic: best.tonic,
+    mode: best.modeName
+  };
+  await storeSet('session:' + record.ts, JSON.stringify(record));
+}
+
+/* ================= PROFILE TAB ================= */
+const rangeArea = document.getElementById('rangeArea');
+const profileHistRow = document.getElementById('profileHistRow');
+const profileHistLabels = document.getElementById('profileHistLabels');
+const sessionsList = document.getElementById('sessionsList');
+const clearProfileBtn = document.getElementById('clearProfileBtn');
+
+async function loadAllSessions(){
+  const keys = await storeList('session:');
+  const sessions = [];
+  for(const k of keys){
+    const r = await storeGet(k);
+    if(r && r.value){
+      try{ sessions.push({ key:k, data: JSON.parse(r.value) }); }catch(e){}
+    }
+  }
+  sessions.sort((a,b)=> b.data.ts - a.data.ts);
+  return sessions;
+}
+
+async function refreshProfile(){
+  const sessions = await loadAllSessions();
+  if(sessions.length === 0){
+    rangeArea.innerHTML = '<div class="empty-state">עדיין אין מספיק נתונים. הקלט כמה סשנים בלשונית "זיהוי סולם חי" כדי לבנות פרופיל.</div>';
+    profileHistRow.innerHTML = '';
+    profileHistLabels.innerHTML = '';
+    sessionsList.innerHTML = '';
+    return;
+  }
+
+  const totalClass = new Array(12).fill(0);
+  const totalMidi = {};
+  sessions.forEach(s=>{
+    s.data.classHistogram.forEach((v,i)=> totalClass[i]+=v );
+    Object.entries(s.data.midiCounts||{}).forEach(([m,c])=>{
+      totalMidi[m] = (totalMidi[m]||0) + c;
+    });
+  });
+
+  renderHistogram(profileHistRow, profileHistLabels, totalClass);
+
+  const midiEntries = Object.entries(totalMidi).map(([m,c])=>[+m,c]);
+  if(midiEntries.length){
+    const maxCount = Math.max(...midiEntries.map(e=>e[1]));
+    const threshold = Math.max(1, maxCount*0.05);
+    const relevant = midiEntries.filter(e=>e[1]>=threshold).map(e=>e[0]);
+    const lo = Math.min(...relevant), hi = Math.max(...relevant);
+    const loInfo = midiToInfo(lo), hiInfo = midiToInfo(hi);
+    rangeArea.innerHTML = `
+      <div class="range-display">
+        <div class="range-note">${loInfo.name}${subscriptOctave(loInfo.octave)}</div>
+        <div class="range-arrow">←</div>
+        <div class="range-note">${hiInfo.name}${subscriptOctave(hiInfo.octave)}</div>
+      </div>
+      <p class="muted" style="text-align:center;">מבוסס על ${sessions.length} הקלטות שמורות</p>
+    `;
+  }
+
+  sessionsList.innerHTML = '';
+  sessions.slice(0,15).forEach(s=>{
+    const d = new Date(s.data.ts);
+    const div = document.createElement('div');
+    div.className = 'session-item';
+    div.innerHTML = `<span class="s-date">${d.toLocaleDateString('he-IL')} ${d.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})}</span><span class="s-scale">${NOTE_NAMES[s.data.tonic]} ${s.data.mode}</span>`;
+    sessionsList.appendChild(div);
+  });
+}
+
+clearProfileBtn.addEventListener('click', async ()=>{
+  if(!confirm('למחוק את כל ההקלטות והפרופיל השמור? לא ניתן לשחזר.')) return;
+  const keys = await storeList('session:');
+  for(const k of keys){ await storeDelete(k); }
+  refreshProfile();
 });
+
+/* ================= SONG TAB ================= */
+let songClassHist = new Array(12).fill(0);
+let songMidiCounts = {};
+let songRecording = false;
+
+const songNoteDisplay = document.getElementById('songNoteDisplay');
+const songNoteSub = document.getElementById('songNoteSub');
+const songBtn = document.getElementById('songBtn');
+const songResultCard = document.getElementById('songResultCard');
+const songDetected = document.getElementById('songDetected');
+const shiftNum = document.getElementById('shiftNum');
+const shiftLabel = document.getElementById('shiftLabel');
+const songRecommend = document.getElementById('songRecommend');
+
+songBtn.addEventListener('click', async ()=>{
+  if(!songRecording){
+    songClassHist = new Array(12).fill(0);
+    songMidiCounts = {};
+    songResultCard.style.display = 'none';
+    try{
+      await startListening(handleSongPitch);
+      songRecording = true;
+      songBtn.textContent = 'עצור וקבל המלצה';
+      songBtn.classList.add('recording');
+    }catch(err){
+      songNoteDisplay.textContent = 'אין גישה למיקרופון';
+    }
+  } else {
+    stopListening();
+    songRecording = false;
+    songBtn.textContent = 'הקלט קטע מהשיר';
+    songBtn.classList.remove('recording');
+    songNoteDisplay.textContent = 'מוכן להאזין';
+    songNoteDisplay.classList.add('idle');
+    songNoteSub.innerHTML = '&nbsp;';
+    await finishSongSession();
+  }
+});
+
+function handleSongPitch(freq){
+  if(freq === -1){
+    songNoteDisplay.classList.add('idle');
+    return;
+  }
+  const midi = freqToMidi(freq);
+  const info = midiToInfo(midi);
+  songNoteDisplay.classList.remove('idle');
+  songNoteDisplay.textContent = info.name + subscriptOctave(info.octave);
+  songNoteSub.textContent = Math.round(freq) + ' Hz';
+  songClassHist[info.idx] += 1;
+  songMidiCounts[info.midi] = (songMidiCounts[info.midi]||0) + 1;
+}
+
+async function finishSongSession(){
+  const total = songClassHist.reduce((a,b)=>a+b,0);
+  if(total < 6){
+    songDetected.textContent = 'לא נאספו מספיק תווים. נסה להקליט קטע ארוך וברור יותר.';
+    songResultCard.style.display = 'block';
+    shiftNum.textContent = '—';
+    songRecommend.textContent = '';
+    return;
+  }
+
+  const songBest = detectScale(songClassHist);
+  const songMidiEntries = Object.entries(songMidiCounts).map(([m,c])=>[+m,c]);
+  const songLo = Math.min(...songMidiEntries.map(e=>e[0]));
+  const songHi = Math.max(...songMidiEntries.map(e=>e[0]));
+  const songCenter = (songLo+songHi)/2;
+
+  const sessions = await loadAllSessions();
+  songResultCard.style.display = 'block';
+  songDetected.textContent = `הקטע שהקלטת נמצא בסולם ${NOTE_NAMES[songBest.tonic]} ${songBest.modeName}, בטווח שבין ${midiToInfo(songLo).name}${subscriptOctave(midiToInfo(songLo).octave)} ל-${midiToInfo(songHi).name}${subscriptOctave(midiToInfo(songHi).octave)}.`;
+
+  if(sessions.length === 0){
+    shiftNum.textContent = '0';
+    shiftLabel.textContent = 'אין עדיין פרופיל אישי';
+    songRecommend.textContent = 'כדי לקבל המלצה מדויקת, בנה קודם פרופיל קולי בלשונית "זיהוי סולם חי".';
+    return;
+  }
+
+  const totalMidi = {};
+  sessions.forEach(s=>{
+    Object.entries(s.data.midiCounts||{}).forEach(([m,c])=>{
+      totalMidi[m] = (totalMidi[m]||0) + c;
+    });
+  });
+  const profileEntries = Object.entries(totalMidi).map(([m,c])=>[+m,c]);
+  const maxCount = Math.max(...profileEntries.map(e=>e[1]));
+  const threshold = Math.max(1, maxCount*0.05);
+  const relevant = profileEntries.filter(e=>e[1]>=threshold).map(e=>e[0]);
+  const profLo = Math.min(...relevant), profHi = Math.max(...relevant);
+  const profCenter = (profLo+profHi)/2;
+
+  let shift = Math.round(profCenter - songCenter);
+  shift = Math.max(-11, Math.min(11, shift));
+
+  shiftNum.textContent = (shift>0?'+':'') + shift;
+  shiftLabel.textContent = 'חצי-טונים (הזזה מומלצת)';
+
+  const newTonic = ((songBest.tonic + shift)%12 + 12)%12;
+  if(shift === 0){
+    songRecommend.textContent = `הסולם המקורי כבר יושב מצוין בטווח שלך — אין צורך בטרנספוזיציה.`;
+  } else {
+    songRecommend.textContent = `מומלץ לשיר את השיר בסולם ${NOTE_NAMES[newTonic]} ${songBest.modeName} — הזזה של ${Math.abs(shift)} חצי-טונים ${shift>0?'למעלה':'למטה'} מהמקור, כדי שיתאים לטווח הנוח שלך.`;
+  }
+}
+
 </script>
 </body>
 </html>
