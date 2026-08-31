@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מזהה סולם</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700&family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #17130f;
+    --panel: #221c16;
+    --panel-2: #2b241c;
+    --brass: #c8933f;
+    --brass-dim: #8a663a;
+    --cream: #efe6d8;
+    --muted: #9a8e7c;
+    --line: #3a3025;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--cream);
+    font-family: 'Heebo', sans-serif;
+    min-height: 100%;
+  }
+  body {
+    display: flex;
+    justify-content: center;
+    padding: 32px 16px 64px;
+  }
+  .stage {
+    width: 100%;
+    max-width: 480px;
+  }
+  header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  h1 {
+    font-family: 'Frank Ruhl Libre', serif;
+    font-weight: 500;
+    font-size: 30px;
+    margin: 0 0 6px;
+    color: var(--cream);
+    letter-spacing: 0.5px;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .dial-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 340px;
+    margin: 8px auto 20px;
+  }
+  svg { width: 100%; height: auto; display: block; }
+
+  .seg-label {
+    font-family: 'Frank Ruhl Libre', serif;
+    font-size: 13px;
+    fill: var(--muted);
+  }
+  .seg-label.active { fill: var(--brass); }
+
+  .center-note {
+    font-family: 'Frank Ruhl Libre', serif;
+    font-size: 42px;
+    fill: var(--cream);
+  }
+  .center-hz {
+    font-size: 12px;
+    fill: var(--muted);
+    font-family: 'Heebo', sans-serif;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 20px;
+    margin-bottom: 14px;
+  }
+
+  .result-label {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .result-value {
+    font-family: 'Frank Ruhl Libre', serif;
+    font-size: 26px;
+    color: var(--brass);
+    min-height: 34px;
+  }
+  .result-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+
+  .controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 4px;
+  }
+  button {
+    flex: 1;
+    font-family: 'Heebo', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    padding: 14px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    color: var(--cream);
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  button.primary {
+    background: var(--brass);
+    color: #221a0e;
+    border-color: var(--brass);
+  }
+  button.primary.listening {
+    background: #7a3a30;
+    border-color: #7a3a30;
+    color: var(--cream);
+  }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  button:not(:disabled):hover { filter: brightness(1.08); }
+
+  .status {
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 12px;
+    min-height: 16px;
+  }
+
+  .banner {
+    display: none;
+    background: #3a2420;
+    border: 1px solid #7a3a30;
+    color: #f0d9d2;
+    font-size: 13px;
+    line-height: 1.7;
+    border-radius: 4px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+  }
+  .banner.show { display: block; }
+  .banner code {
+    background: #2b1a17;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 12px;
+  }
+
+  .note-bar-track {
+    position: relative;
+    height: 8px;
+    background: var(--line);
+    border-radius: 4px;
+    margin-top: 12px;
+    overflow: hidden;
+  }
+  .note-bar-fill {
+    position: absolute;
+    inset: 0;
+    width: 0%;
+    background: var(--brass);
+    border-radius: 4px;
+    transition: width 0.15s linear;
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <header>
+    <h1>מזהה סולם</h1>
+    <div class="subtitle">שירו לתוך המיקרופון — האפליקציה תאזין לצלילים ותנחש את הסולם המוזיקלי</div>
+  </header>
+
+  <div class="banner" id="banner"></div>
+
+  <div class="dial-wrap">
+    <svg viewBox="0 0 340 340" id="dial"></svg>
+  </div>
+
+  <div class="panel">
+    <div class="result-label">הסולם הסביר ביותר</div>
+    <div class="result-value" id="resultValue">—</div>
+    <div class="result-sub" id="resultSub">התחילו להאזין כדי לצבור מספיק תווים</div>
+  </div>
+
+  <div class="controls">
+    <button class="primary" id="toggleBtn">התחל האזנה</button>
+    <button id="resetBtn">איפוס</button>
+  </div>
+
+  <div class="note-bar-track"><div class="note-bar-fill" id="volBar"></div></div>
+  <div class="status" id="status"></div>
+</div>
+
+<script>
+const NOTE_NAMES = ['דו','דו♯','רה','רה♯','מי','פה','פה♯','סול','סול♯','לה','לה♯','סי'];
+
+// Krumhansl-Kessler key profiles
+const MAJOR_PROFILE = [6.35,2.23,3.48,2.33,4.38,4.09,2.52,5.19,2.39,3.66,2.29,2.88];
+const MINOR_PROFILE = [6.33,2.68,3.52,5.38,2.60,3.53,2.54,4.75,3.98,2.69,3.34,3.17];
+
+let audioCtx, analyser, source, stream, dataArray, rafId;
+let listening = false;
+let histogram = new Array(12).fill(0);
+let sampleCount = 0;
+const DECAY = 0.985; // older notes fade out so the guess tracks what you're singing right now
+
+const banner = document.getElementById('banner');
+
+function showBanner(html) {
+  banner.innerHTML = html;
+  banner.classList.add('show');
+}
+
+function checkEnvironment() {
+  const hasMediaDevices = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+  if (!hasMediaDevices || !window.isSecureContext) {
+    showBanner(
+      'הדפדפן חוסם גישה למיקרופון בעמוד הזה — כנראה כי הקובץ נפתח ישירות מהדיסק (<code>file://</code>) ולא מכתובת מאובטחת.<br>' +
+      'העלו את הקובץ ל-GitHub Pages (או כל אחסון עם HTTPS) ופתחו אותו משם, ואז הגישה תעבוד.'
+    );
+    toggleBtn.disabled = true;
+    return false;
+  }
+  return true;
+}
+
+const dial = document.getElementById('dial');
+const toggleBtn = document.getElementById('toggleBtn');
+const resetBtn = document.getElementById('resetBtn');
+const resultValue = document.getElementById('resultValue');
+const resultSub = document.getElementById('resultSub');
+const statusEl = document.getElementById('status');
+const volBar = document.getElementById('volBar');
+
+checkEnvironment();
+
+const CX = 170, CY = 170, R_OUT = 150, R_IN = 60, R_LABEL = 128;
+
+function buildDial() {
+  let svg = '';
+  for (let i = 0; i < 12; i++) {
+    const angle = (i / 12) * 2 * Math.PI - Math.PI / 2;
+    const nextAngle = ((i + 1) / 12) * 2 * Math.PI - Math.PI / 2;
+    const x1 = CX + R_IN * Math.cos(angle), y1 = CY + R_IN * Math.sin(angle);
+    const x2 = CX + R_OUT * Math.cos(angle), y2 = CY + R_OUT * Math.sin(angle);
+    const x3 = CX + R_OUT * Math.cos(nextAngle), y3 = CY + R_OUT * Math.sin(nextAngle);
+    const x4 = CX + R_IN * Math.cos(nextAngle), y4 = CY + R_IN * Math.sin(nextAngle);
+    svg += `<path id="seg${i}" d="M ${x1} ${y1} L ${x2} ${y2} A ${R_OUT} ${R_OUT} 0 0 1 ${x3} ${y3} L ${x4} ${y4} A ${R_IN} ${R_IN} 0 0 0 ${x1} ${y1} Z" fill="#2b241c" stroke="#17130f" stroke-width="2"/>`;
+    const midAngle = angle + (Math.PI / 12);
+    const lx = CX + R_LABEL * Math.cos(midAngle), ly = CY + R_LABEL * Math.sin(midAngle);
+    svg += `<text id="label${i}" class="seg-label" x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle">${NOTE_NAMES[i]}</text>`;
+  }
+  svg += `<circle cx="${CX}" cy="${CY}" r="${R_IN - 4}" fill="#17130f" stroke="#3a3025" stroke-width="1"/>`;
+  svg += `<text id="centerNote" class="center-note" x="${CX}" y="${CY - 4}" text-anchor="middle" dominant-baseline="middle">—</text>`;
+  svg += `<text id="centerHz" class="center-hz" x="${CX}" y="${CY + 20}" text-anchor="middle">—</text>`;
+  dial.innerHTML = svg;
+}
+buildDial();
+
+function updateDialWeights() {
+  const max = Math.max(...histogram, 1);
+  for (let i = 0; i < 12; i++) {
+    const seg = document.getElementById('seg' + i);
+    const label = document.getElementById('label' + i);
+    const intensity = histogram[i] / max;
+    const c = Math.round(43 + intensity * (200 - 43));
+    const g = Math.round(36 + intensity * (147 - 36));
+    const b = Math.round(28 + intensity * (63 - 28));
+    seg.setAttribute('fill', `rgb(${c},${g},${b})`);
+    label.classList.toggle('active', intensity > 0.5);
+  }
+}
+
+function autocorrelate(buf, sampleRate) {
+  const SIZE = buf.length;
+  let rms = 0;
+  for (let i = 0; i < SIZE; i++) rms += buf[i] * buf[i];
+  rms = Math.sqrt(rms / SIZE);
+  if (rms < 0.01) return { freq: -1, rms };
+
+  let r1 = 0, r2 = SIZE - 1;
+  const thresh = 0.2;
+  for (let i = 0; i < SIZE / 2; i++) { if (Math.abs(buf[i]) < thresh) { r1 = i; break; } }
+  for (let i = 1; i < SIZE / 2; i++) { if (Math.abs(buf[SIZE - i]) < thresh) { r2 = SIZE - i; break; } }
+  const trimmed = buf.slice(r1, r2);
+  const n = trimmed.length;
+
+  const c = new Array(n).fill(0);
+  for (let lag = 0; lag < n; lag++) {
+    for (let i = 0; i < n - lag; i++) c[lag] += trimmed[i] * trimmed[i + lag];
+  }
+  let d = 0;
+  while (d < n - 1 && c[d] > c[d + 1]) d++;
+  let maxVal = -1, maxPos = -1;
+  for (let i = d; i < n; i++) { if (c[i] > maxVal) { maxVal = c[i]; maxPos = i; } }
+  let T0 = maxPos;
+  if (T0 <= 0) return { freq: -1, rms };
+
+  const x1 = c[T0 - 1] || c[T0], x2 = c[T0], x3 = c[T0 + 1] || c[T0];
+  const a = (x1 + x3 - 2 * x2) / 2, b = (x3 - x1) / 2;
+  if (a) T0 = T0 - b / (2 * a);
+
+  return { freq: sampleRate / T0, rms };
+}
+
+function freqToNote(freq) {
+  const midi = 69 + 12 * Math.log2(freq / 440);
+  const rounded = Math.round(midi);
+  const pitchClass = ((rounded % 12) + 12) % 12;
+  const cents = (midi - rounded) * 100;
+  return { pitchClass, midi: rounded, cents };
+}
+
+function pearson(hist, profile) {
+  const n = 12;
+  const meanH = hist.reduce((a, b) => a + b, 0) / n;
+  const meanP = profile.reduce((a, b) => a + b, 0) / n;
+  let num = 0, denH = 0, denP = 0;
+  for (let i = 0; i < n; i++) {
+    const dh = hist[i] - meanH, dp = profile[i] - meanP;
+    num += dh * dp; denH += dh * dh; denP += dp * dp;
+  }
+  const den = Math.sqrt(denH * denP);
+  return den === 0 ? 0 : num / den;
+}
+
+function bestKey(hist) {
+  let best = { score: -Infinity, tonic: 0, mode: 'major' };
+  for (let tonic = 0; tonic < 12; tonic++) {
+    const rotatedMajor = MAJOR_PROFILE.map((_, i) => hist[(i + tonic) % 12]);
+    const rotatedMinor = MINOR_PROFILE.map((_, i) => hist[(i + tonic) % 12]);
+    const scoreMajor = pearson(rotatedMajor, MAJOR_PROFILE);
+    const scoreMinor = pearson(rotatedMinor, MINOR_PROFILE);
+    if (scoreMajor > best.score) best = { score: scoreMajor, tonic, mode: 'major' };
+    if (scoreMinor > best.score) best = { score: scoreMinor, tonic, mode: 'minor' };
+  }
+  return best;
+}
+
+function renderResult() {
+  const totalWeight = histogram.reduce((a, b) => a + b, 0);
+  if (sampleCount < 2 || totalWeight === 0) {
+    resultValue.textContent = '—';
+    resultSub.textContent = 'שירו תו אחד כדי לקבל ניחוש ראשוני';
+    return;
+  }
+  const { tonic, mode, score } = bestKey(histogram);
+  const modeLabel = mode === 'major' ? "מז'ור" : 'מינור';
+  resultValue.textContent = `${NOTE_NAMES[tonic]} ${modeLabel}`;
+  const confidence = Math.max(0, Math.min(1, (score + 1) / 2));
+  const label = sampleCount < 8 ? 'ניחוש ראשוני' : 'ביטחון בזיהוי';
+  resultSub.textContent = `${label}: ${Math.round(confidence * 100)}%`;
+}
+
+function tick() {
+  if (!listening) return;
+  const buf = new Float32Array(analyser.fftSize);
+  analyser.getFloatTimeDomainData(buf);
+  const { freq, rms } = autocorrelate(buf, audioCtx.sampleRate);
+
+  volBar.style.width = Math.min(100, rms * 400) + '%';
+
+  const centerNote = document.getElementById('centerNote');
+  const centerHz = document.getElementById('centerHz');
+
+  if (freq > 60 && freq < 1200) {
+    const { pitchClass, cents } = freqToNote(freq);
+    for (let i = 0; i < 12; i++) histogram[i] *= DECAY;
+    histogram[pitchClass] += 1;
+    sampleCount++;
+    centerNote.textContent = NOTE_NAMES[pitchClass];
+    centerHz.textContent = `${freq.toFixed(1)} הרץ · ${cents > 0 ? '+' : ''}${cents.toFixed(0)} סנט`;
+    updateDialWeights();
+    renderResult();
+    statusEl.textContent = '';
+  } else {
+    centerHz.textContent = '';
+  }
+
+  rafId = requestAnimationFrame(tick);
+}
+
+async function startListening() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+  } catch (err) {
+    showBanner(`לא הצלחתי לגשת למיקרופון: <code>${err.name || err.message || err}</code>.<br>ודאו שנתתם הרשאת מיקרופון לדף הזה בהגדרות הדפדפן, ושהעמוד נפתח מכתובת https.`);
+    return;
+  }
+  banner.classList.remove('show');
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 2048;
+  source = audioCtx.createMediaStreamSource(stream);
+  source.connect(analyser);
+
+  listening = true;
+  toggleBtn.textContent = 'עצור האזנה';
+  toggleBtn.classList.add('listening');
+  statusEl.textContent = 'מאזין...';
+  tick();
+}
+
+function stopListening() {
+  listening = false;
+  if (rafId) cancelAnimationFrame(rafId);
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  if (audioCtx) audioCtx.close();
+  toggleBtn.textContent = 'התחל האזנה';
+  toggleBtn.classList.remove('listening');
+  statusEl.textContent = '';
+  volBar.style.width = '0%';
+  document.getElementById('centerHz').textContent = '';
+}
+
+toggleBtn.addEventListener('click', () => {
+  if (listening) stopListening(); else startListening();
+});
+
+resetBtn.addEventListener('click', () => {
+  histogram = new Array(12).fill(0);
+  sampleCount = 0;
+  updateDialWeights();
+  renderResult();
+  document.getElementById('centerNote').textContent = '—';
+});
+</script>
+</body>
+</html>
