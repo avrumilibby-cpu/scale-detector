@@ -310,7 +310,7 @@
       <div class="hist-labels" id="histLabels"></div>
 
       <div id="resultBanner" class="result-banner">
-        <div class="muted">זיהיתי שאתה שר בסולם:</div>
+        <div class="muted" id="resultLabel">זיהיתי שאתה שר בסולם:</div>
         <div class="scale-name" id="scaleName">—</div>
       </div>
     </div>
@@ -517,7 +517,9 @@ const liveBtn = document.getElementById('liveBtn');
 const histRow = document.getElementById('histRow');
 const histLabels = document.getElementById('histLabels');
 const resultBanner = document.getElementById('resultBanner');
+const resultLabel = document.getElementById('resultLabel');
 const scaleNameEl = document.getElementById('scaleName');
+let lastGuessUpdate = 0;
 
 renderHistogram(histRow, histLabels, liveClassHist);
 
@@ -550,11 +552,13 @@ liveBtn.addEventListener('click', async ()=>{
   if(!liveRecording){
     liveClassHist = new Array(12).fill(0);
     liveMidiCounts = {};
-    resultBanner.classList.remove('show');
+    resultLabel.textContent = 'מאזין... אוסף תווים';
+    scaleNameEl.textContent = '—';
+    resultBanner.classList.add('show');
     try{
       await startListening(handleLivePitch);
       liveRecording = true;
-      liveBtn.textContent = 'עצור וזהה סולם';
+      liveBtn.textContent = 'עצור ושמור לפרופיל';
       liveBtn.classList.add('recording');
     }catch(err){
       noteDisplay.textContent = 'אין גישה למיקרופון';
@@ -589,6 +593,22 @@ function handleLivePitch(freq){
   liveClassHist[info.idx] += 1;
   liveMidiCounts[info.midi] = (liveMidiCounts[info.midi]||0) + 1;
   renderHistogram(histRow, histLabels, liveClassHist);
+  updateLiveScaleGuess();
+}
+
+function updateLiveScaleGuess(){
+  const now = performance.now();
+  if(now - lastGuessUpdate < 250) return; // refresh ~4x/sec, no need for every frame
+  lastGuessUpdate = now;
+  const total = liveClassHist.reduce((a,b)=>a+b,0);
+  if(total < 6){
+    resultLabel.textContent = 'מאזין... אוסף תווים';
+    scaleNameEl.textContent = '—';
+    return;
+  }
+  const best = detectScale(liveClassHist);
+  resultLabel.textContent = total < 20 ? 'הערכה ראשונית (עדיין אוסף):' : 'אתה שר עכשיו בסולם:';
+  scaleNameEl.textContent = NOTE_NAMES[best.tonic] + ' ' + best.modeName;
 }
 
 function subscriptOctave(oct){
@@ -599,9 +619,12 @@ function subscriptOctave(oct){
 async function finishLiveSession(){
   const total = liveClassHist.reduce((a,b)=>a+b,0);
   if(total < 8){
+    resultLabel.textContent = 'לא נאספו מספיק תווים';
+    scaleNameEl.textContent = '—';
     return; // too little data to say anything meaningful
   }
   const best = detectScale(liveClassHist);
+  resultLabel.textContent = 'זיהיתי שאתה שר בסולם:';
   scaleNameEl.textContent = NOTE_NAMES[best.tonic] + ' ' + best.modeName;
   resultBanner.classList.add('show');
 
@@ -797,6 +820,7 @@ async function finishSongSession(){
   }
 }
 
+})();
 </script>
 </body>
 </html>
